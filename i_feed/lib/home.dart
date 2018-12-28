@@ -204,6 +204,71 @@ void main() {
 }*/
 
 
+
+
+
+
+
+
+//second
+
+/*class _SecondScreenState extends State<SecondScreen> {
+
+  WebController webController;
+  void onWebCreated(webController) {
+    this.webController = webController;
+    this.webController.loadUrl('${widget.value.url}');
+    this.webController.onPageStarted.listen((url) =>
+        print("Loading $url")
+    );
+    this.webController.onPageFinished.listen((url) =>
+        print("Finished loading $url")
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(title: new Text('Detail Page')),
+      body: new Container(
+        child: new Center(
+          child: Column(
+            children: <Widget>[
+              Padding(
+                child: new Text(
+                  '${widget.value.title}',
+                  style: new TextStyle(fontWeight: FontWeight.bold,fontSize: 18.0),
+                  textAlign: TextAlign.center,
+                ),
+                padding: EdgeInsets.all(10.0),
+              ),
+              Padding(
+                //`widget` is the current configuration. A State object's configuration
+                //is the corresponding StatefulWidget instance.
+                child: Image.network( '${widget.value.urlToImage}'),
+                padding: EdgeInsets.only(bottom: 8.0),
+              ),
+              Padding(
+                child:new Container(
+                    child: new FlutterNativeWeb(onWebCreated: onWebCreated),
+                    height: 300.0,
+                    width: 500.0,
+                    alignment:Alignment.center
+                ),
+                padding: EdgeInsets.all(20.0),
+              )
+            ],   ),
+        ),
+      ),
+    );
+  }
+}*/
+
+
+
+
+
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
