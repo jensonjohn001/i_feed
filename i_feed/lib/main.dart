@@ -4,54 +4,36 @@ import 'package:http/http.dart' show get;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter_native_web/flutter_native_web.dart';
+import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:dynamic_theme/theme_switcher_widgets.dart';
+//Project Files
+import 'fab_with_icons.dart';
+import 'fab_bottom_app_bar.dart';
+import 'layout.dart';
+import 'package:i_feed/model/model.dart';
 
-String url = "https://newsapi.org/v2/everything?sources=techcrunch&apiKey=ef5b910bb4a047d289c7366e96d9d9df";
+void main() => runApp(new MyApp());
+String url = "https://newsapi.org/v2/everything?sources=techradar&apiKey=ef5b910bb4a047d289c7366e96d9d9df";
 
-class Feed {
-  final String status;
-  final List<Article> articles;
-
-  Feed({
-    this.status,
-    this.articles
-  });
-
-  factory Feed.fromJson(Map<String, dynamic> parsedJson){
-    var list = parsedJson['articles'] as List;
-    print(list.runtimeType);
-    List<Article> articlesList = list.map((i) => Article.fromJson(i)).toList();
-
-    return Feed(
-        status:parsedJson['status'],
-        articles:articlesList
-    );
-  }
-
-}
-
-class Article {
-  final String title;
-  final String description, urlToImage, url, publishedAt;
-
-  Article({
-    this.title,
-    this.description,
-    this.urlToImage,
-    this.url,
-    this.publishedAt,
-  });
-
-  factory Article.fromJson(Map<String, dynamic> jsonData) {
-    return Article(
-      title: jsonData['title'],
-      description: jsonData['description'],
-      urlToImage: jsonData['urlToImage'],
-      url: jsonData['url'],
-      publishedAt: jsonData['publishedAt'],
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new DynamicTheme(
+        defaultBrightness: Brightness.light,
+        data: (brightness) => new ThemeData(
+          primarySwatch: Colors.deepPurple,
+          brightness: brightness,
+        ),
+        themedWidgetBuilder: (context, theme) {
+          return new MaterialApp(
+            title: 'Flutter Demo',
+            theme: theme,
+            home: new MyHomePage(title: 'Flutter Demo Home Page'),
+          );
+        }
     );
   }
 }
-
 
 
 class CustomListView extends StatelessWidget {
@@ -68,8 +50,6 @@ class CustomListView extends StatelessWidget {
     );
   }
 
-
-
   Widget createViewItem(Article articles, BuildContext context) {
 
     var dateFromApi = articles.publishedAt;
@@ -81,7 +61,7 @@ class CustomListView extends StatelessWidget {
         title: new Card(
           elevation: 5.0,
           child: new Container(
-            decoration: BoxDecoration(border: Border.all(color: Colors.orange)),
+            decoration: BoxDecoration(border: Border.all(color: Colors.blue)),
             padding: EdgeInsets.all(20.0),
             margin: EdgeInsets.all(20.0),
             child: Column(
@@ -131,6 +111,7 @@ class CustomListView extends StatelessWidget {
   }
 }
 
+
 //Future is n object representing a delayed computation.
 Future<List<Article>> downloadJSON() async {
   final jsonEndpoint = url;
@@ -152,6 +133,7 @@ Future<List<Article>> downloadJSON() async {
     throw Exception('We were not able to successfully download the json data.');
 
 }
+
 
 class SecondScreen extends StatefulWidget {
   final Article value;
@@ -210,36 +192,56 @@ class _SecondScreenState extends State<SecondScreen> {
             ],   ),
         ),
       ),
+
     );
   }
 }
 
-class MyApp extends StatelessWidget {
+
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  _MyHomePageState createState() => new _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+  String _lastSelected = 'TAB: 0';
+
+  void _selectedTab(int index) {
+    setState(() {
+      _lastSelected = 'TAB: $index';
+    });
+  }
+
+  void _selectedFab(int index) {
+    setState(() {
+      _lastSelected = 'FAB: $index';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      theme: new ThemeData(
-          primarySwatch: Colors.green,
-          brightness: Brightness.light,
-          accentColor: Colors.red
-      ),
-      home: new Scaffold(
-        appBar: new AppBar(title: const Text('JSON Images Text'),
-          actions: <Widget>[
-            new IconButton(icon: new Icon(Icons.brightness_3),
-              onPressed: (){},
-            ),
-          ],
-        ),
 
-        body: new Center(
+    if(_lastSelected == "TAB: 0"){
+      return Scaffold(
+        appBar: AppBar(
+          title: Text("Global Feeds"),
+            actions: <Widget>[
+              new IconButton(icon: new Icon(Icons.brightness_4),
+                onPressed: showChooser,
+              ),
+            ]
+
+        ),
+        body:new Center(
           //FutureBuilder is a widget that builds itself based on the latest snapshot
           // of interaction with a Future.
           child: new FutureBuilder<List<Article>>(
             future: downloadJSON(),
-            //we pass a BuildContext and an AsyncSnapshot object which is an
-            //Immutable representation of the most recent interaction with
-            //an asynchronous computation.
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 List<Article> spacecrafts = snapshot.data;
@@ -253,11 +255,109 @@ class MyApp extends StatelessWidget {
           ),
 
         ),
+        bottomNavigationBar: FABBottomAppBar(
+          centerItemText: '',
+          color: Colors.grey,
+          selectedColor: Colors.redAccent,
+          notchedShape: CircularNotchedRectangle(),
+          onTabSelected: _selectedTab,
+          items: [
+            FABBottomAppBarItem(iconData: Icons.rss_feed, text: 'Feeds'),
+            FABBottomAppBarItem(iconData: Icons.account_balance, text: 'Home'),
+            FABBottomAppBarItem(iconData: Icons.favorite, text: 'Loved'),
+            FABBottomAppBarItem(iconData: Icons.more_vert, text: 'More'),
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: _buildFab(
+            context), // This trailing comma makes auto-formatting nicer for build methods.
+      );
+
+
+    }else{
+
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+            actions: <Widget>[
+              new IconButton(icon: new Icon(Icons.brightness_4),
+                onPressed: showChooser,
+              ),
+            ]
+        ),
+        body: Center(
+          child: Text(
+            _lastSelected,
+            style: TextStyle(fontSize: 32.0),
+          ),
+        ),
+        bottomNavigationBar: FABBottomAppBar(
+          centerItemText: '',
+          color: Colors.grey,
+          selectedColor: Colors.redAccent,
+          notchedShape: CircularNotchedRectangle(),
+          onTabSelected: _selectedTab,
+          items: [
+            FABBottomAppBarItem(iconData: Icons.rss_feed, text: 'Feeds'),
+            FABBottomAppBarItem(iconData: Icons.account_balance, text: 'Home'),
+            FABBottomAppBarItem(iconData: Icons.favorite, text: 'Loved'),
+            FABBottomAppBarItem(iconData: Icons.more_vert, text: 'More'),
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: _buildFab(
+            context), // This trailing comma makes auto-formatting nicer for build methods.
+      );
+
+    }
+
+
+  }
+
+  Widget _buildFab(BuildContext context) {
+    final icons = [ Icons.sms, Icons.mail, Icons.phone ];
+    return AnchoredOverlay(
+      showOverlay: true,
+      overlayBuilder: (context, offset) {
+        return CenterAbout(
+          position: Offset(offset.dx, offset.dy - icons.length * 35.0),
+          child: FabWithIcons(
+            icons: icons,
+            onIconTapped: _selectedFab,
+          ),
+        );
+      },
+      child: FloatingActionButton(
+        onPressed: () { },
+        tooltip: 'Increment',
+        child: Icon(Icons.add),
+        elevation: 2.0,
       ),
     );
   }
-}
 
-void main() {
-  runApp(MyApp());
+
+  void showChooser() {
+    showDialog(context: context, builder: (context) {
+      return new BrightnessSwitcherDialog(
+        onSelectedTheme: (brightness) {
+          DynamicTheme.of(context).setBrightness(brightness);
+        },
+      );
+    });
+  }
+
+
+  void changeBrightness() {
+    DynamicTheme.of(context).setBrightness(Theme.of(context).brightness == Brightness.dark? Brightness.light: Brightness.dark);
+  }
+
+  void changeColor() {
+    DynamicTheme.of(context).setThemeData(new ThemeData(
+        primaryColor: Theme.of(context).primaryColor == Colors.indigo? Colors.red: Colors.indigo
+    ));
+  }
+
+
+
 }
